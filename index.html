@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Print STL Submission Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+
+  <!-- ====================================================================== -->
+  <!-- TOP NAVIGATION HEADER                                                  -->
+  <!-- ====================================================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+            <path d="m3.3 7 8.7 5 8.7-5" />
+            <path d="M12 22V12" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+            3D Print STL Submission Portal
+          </h1>
+          <p class="text-xs text-slate-500">
+            Automatic class-folder renaming &amp; Google Drive teacher queue
+          </p>
+        </div>
+      </div>
+
+      <nav class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 self-start sm:self-auto">
+        <button
+          id="tab-student-btn"
+          type="button"
+          class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-indigo-700 shadow-sm"
+        >
+          Student Upload
+        </button>
+        <button
+          id="tab-teacher-btn"
+          type="button"
+          class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900"
+        >
+          <span>Teacher Drive</span>
+          <span
+            id="teacher-count-badge"
+            class="px-1.5 py-0.5 rounded-full text-[11px] bg-indigo-100 text-indigo-700"
+          >0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 max-w-md hidden"></div>
+
+  <!-- ====================================================================== -->
+  <!-- MAIN CONTENT AREA                                                      -->
+  <!-- ====================================================================== -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ==================================================================== -->
+    <!-- STUDENT UPLOAD VIEW                                                  -->
+    <!-- ==================================================================== -->
+    <section id="view-student" class="max-w-2xl mx-auto">
+      <!-- Upload Form Card -->
+      <div id="student-form-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-indigo-50/70 to-slate-50">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+              Submit 3D Print File
+            </h2>
+            <span
+              id="student-drive-badge"
+              class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold"
+            >
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                <path d="m9 15 2 2 4-4" />
+              </svg>
+              <span>Google Drive Auto-Sync Active</span>
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 mt-1">
+            Enter your details below. Your <code class="font-mono text-indigo-700">.stl</code> file will be renamed automatically and saved in your class folder.
+          </p>
+        </div>
+
+        <form id="student-upload-form" class="p-6 space-y-5" novalidate>
+          <!-- Live Output Filename Preview -->
+          <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200/80">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">
+              Output Filename Preview
+            </div>
+            <div id="filename-preview" class="mt-1 font-mono text-sm font-semibold text-indigo-950 break-all">
+              [Class] - [Student Name] ([Initials]).stl
+            </div>
+          </div>
+
+          <!-- Student Name & Initials -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label for="input-student-name" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                Student Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="input-student-name"
+                type="text"
+                required
+                placeholder="e.g., Maya Patel"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="input-student-initials" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                Initials <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="input-student-initials"
+                type="text"
+                required
+                maxlength="6"
+                placeholder="e.g., MP"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Class Dropdown (All 30 Classes, Year 1 - Year 6) -->
+          <div>
+            <label for="input-student-class" class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Class <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="input-student-class"
+              required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            >
+              <option value="">Select your class...</option>
+            </select>
+          </div>
+
+          <!-- Drag-and-Drop STL File Picker -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Upload STL File <span class="text-red-500">*</span>
+            </label>
+            <div
+              id="dropzone"
+              class="cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50/70 p-6 text-center transition-colors"
+            >
+              <input id="input-stl-file" type="file" accept=".stl" class="hidden" />
+              <div id="dropzone-empty" class="flex flex-col items-center gap-1.5">
+                <svg class="h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                  <path d="M12 12v9" />
+                  <path d="m16 16-4-4-4 4" />
+                </svg>
+                <p class="text-sm font-semibold text-slate-700">
+                  Click to choose or drag &amp; drop your <span class="text-indigo-600">.stl</span> file
+                </p>
+                <p class="text-xs text-slate-500">Maximum size: 2.0 MB</p>
+              </div>
+              <div id="dropzone-selected" class="hidden flex-col items-center gap-1.5">
+                <svg class="h-8 w-8 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <p id="selected-file-name" class="text-sm font-semibold text-slate-900 break-all"></p>
+                <p id="selected-file-meta" class="text-xs text-slate-500"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Error Alert -->
+          <div id="student-form-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center gap-2">
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" />
+            </svg>
+            <span id="student-form-error-text"></span>
+          </div>
+
+          <button
+            id="student-submit-btn"
+            type="submit"
+            class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold shadow-sm transition-colors flex items-center justify-center gap-2"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+              <path d="M12 12v9" />
+              <path d="m16 16-4-4-4 4" />
+            </svg>
+            <span id="student-submit-label">Submit STL for 3D Printing</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Submission Confirmation Card -->
+      <div id="student-success-card" class="hidden max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center">
+        <div class="h-14 w-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+          <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+        </div>
+        <h2 class="mt-4 text-xl font-bold text-slate-900">3D Print File Submitted!</h2>
+        <p class="mt-1 text-sm text-slate-600">
+          Your file has been renamed and placed into the
+          <span id="success-class-name" class="font-semibold text-slate-900"></span> folder for your teacher.
+        </p>
+
+        <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Saved Filename</p>
+          <p id="success-filename" class="mt-1 font-mono text-sm font-semibold text-indigo-700 break-all"></p>
+          <p id="success-meta" class="mt-1 text-xs text-slate-500"></p>
+          <p id="success-drive-note" class="hidden mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700"></p>
+        </div>
+
+        <button
+          id="submit-another-btn"
+          type="button"
+          class="mt-6 w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-colors"
+        >
+          Submit Another STL File
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- TEACHER DRIVE DASHBOARD VIEW                                         -->
+    <!-- ==================================================================== -->
+    <section id="view-teacher" class="hidden space-y-6">
+
+      <!-- Header & Drive Controls -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900">Teacher Drive Dashboard</h2>
+          <p class="text-sm text-slate-600 mt-0.5">
+            Filter by year or class, update print statuses, sync with Google Drive, and download ZIP batches.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            id="btn-toggle-drive-setup"
+            type="button"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-semibold transition-colors bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700"
+          >
+            <span id="btn-drive-status-label">Connect Google Drive</span>
+          </button>
+
+          <a
+            id="link-open-drive"
+            href="https://drive.google.com/drive/folders/1MrUrr2bzk1OvbSeXotJ0jVIUWTFhkgqx"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-xs sm:text-sm font-semibold text-slate-700 hover:text-indigo-700 transition-colors"
+          >
+            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+            </svg>
+            <div class="text-left">
+              <div>Open Google Drive Folder</div>
+              <div class="text-[11px] font-mono text-slate-500">ID: 1MrUrr2bzk1O...</div>
+            </div>
+            <svg class="h-3.5 w-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Collapsible Google Drive Auto-Sync Setup Panel -->
+      <div id="drive-setup-panel" class="hidden bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 bg-indigo-50/70 border-b border-indigo-200/80 flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-indigo-950">
+              Google Drive Auto-Sync Setup (Free via Google Apps Script)
+            </h3>
+            <p class="text-xs text-indigo-800/80 mt-0.5">
+              Deploy this 1-time script in your Google account so every student STL is automatically saved into class subfolders inside your Drive folder.
+            </p>
+          </div>
+          <button
+            id="btn-close-drive-setup"
+            type="button"
+            class="p-1.5 rounded-lg text-indigo-700 hover:bg-indigo-100"
+            aria-label="Close setup panel"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-5">
+          <ol class="text-xs sm:text-sm text-slate-700 space-y-1.5 list-decimal list-inside">
+            <li>
+              Open <a href="https://script.google.com/home/start" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:underline">script.google.com</a> and click <strong>New Project</strong>.
+            </li>
+            <li>
+              Delete any existing code, paste the protected script below (your Secret Key &amp; all 30 classes are already embedded), and click <strong>Save</strong>.
+            </li>
+            <li>
+              Click <strong>Deploy &rarr; New deployment</strong>, choose <strong>Web app</strong>, set <em>Execute as</em> to <strong>Me</strong> and <em>Who has access</em> to <strong>Anyone</strong>, then click <strong>Deploy</strong>.
+            </li>
+            <li>
+              Copy your <strong>Web app URL</strong>, paste it below to test, and optionally paste both the URL and Secret Key into <code class="font-mono text-indigo-700">BAKED_WEB_APP_URL</code> and <code class="font-mono text-indigo-700">BAKED_SECRET_KEY</code> at the top of this HTML file before pasting into Google Sites.
+            </li>
+          </ol>
+
+          <!-- Built-in Security Safeguards Summary -->
+          <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            <span class="font-bold text-emerald-800">Built-in Safeguards:</span>
+            <span>&#10003; Secret Key required</span>
+            <span>&#10003; Only <code>.stl</code> files allowed</span>
+            <span>&#10003; Only your 30 school classes allowed</span>
+            <span>&#10003; Write-only (cannot read or delete files)</span>
+          </div>
+
+          <!-- Secret Upload Key Input -->
+          <div class="space-y-1.5">
+            <label for="input-drive-secret" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+              Secret Upload Key (Embedded in Script Below)
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input
+                id="input-drive-secret"
+                type="text"
+                placeholder="STL-XXXX-XXXX-XXXX"
+                class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-mono text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+              <button
+                id="btn-generate-key"
+                type="button"
+                class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+              >
+                Generate New Key
+              </button>
+            </div>
+          </div>
+
+          <!-- Copyable Apps Script Box -->
+          <div class="rounded-xl border border-slate-200 overflow-hidden bg-slate-900">
+            <div class="px-3.5 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+              <span class="text-[11px] font-mono text-slate-300">
+                Code.gs &bull; Target Folder ID: 1MrUrr2bzk1OvbSeXotJ0jVIUWTFhkgqx
+              </span>
+              <button
+                id="btn-copy-script"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
+              >
+                <span id="copy-script-label">Copy Script</span>
+              </button>
+            </div>
+            <textarea
+              id="apps-script-textarea"
+              readonly
+              aria-label="Google Apps Script code"
+              class="block w-full p-3.5 text-[11px] sm:text-xs font-mono text-slate-100 bg-slate-900 h-56 leading-relaxed resize-none outline-none selection:bg-indigo-500 selection:text-white"
+            ></textarea>
+          </div>
+
+          <!-- Web App URL Input & Actions -->
+          <div class="space-y-2.5">
+            <label for="input-drive-url" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+              Google Apps Script Web App URL
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input
+                id="input-drive-url"
+                type="url"
+                placeholder="https://script.google.com/macros/s/.../exec"
+                class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+              <button
+                id="btn-test-drive"
+                type="button"
+                class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-800 text-xs sm:text-sm font-semibold transition-colors"
+              >
+                Test Connection
+              </button>
+              <button
+                id="btn-save-drive"
+                type="button"
+                class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors"
+              >
+                Save Settings
+              </button>
+            </div>
+            <div id="drive-test-result" class="hidden p-3 rounded-xl text-xs font-medium border"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Class Folders Grid + Quick Year/Class Jump -->
+      <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Class Folders (30 Classes)
+          </h3>
+          <div class="flex items-center gap-2">
+            <label for="select-jump-class" class="text-xs font-medium text-slate-500">
+              Jump to class:
+            </label>
+            <select
+              id="select-jump-class"
+              class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+            ></select>
+          </div>
+        </div>
+
+        <div id="class-folders-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5"></div>
+      </div>
+
+      <!-- Filter, Sort & All-Visible Bulk Actions Toolbar -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+          <!-- Search -->
+          <div class="lg:col-span-4 relative">
+            <svg class="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              id="filter-search"
+              type="text"
+              placeholder="Search student, initials, class..."
+              class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+
+          <!-- Year Filter -->
+          <div class="lg:col-span-2">
+            <select
+              id="filter-year"
+              aria-label="Filter by Year Group"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option value="All Years">All Years</option>
+              <option value="Year 1">Year 1</option>
+              <option value="Year 2">Year 2</option>
+              <option value="Year 3">Year 3</option>
+              <option value="Year 4">Year 4</option>
+              <option value="Year 5">Year 5</option>
+              <option value="Year 6">Year 6</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="lg:col-span-3">
+            <select
+              id="filter-status"
+              aria-label="Filter by Print Status"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option value="All Statuses">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Printing">Printing</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+
+          <!-- Sort By -->
+          <div class="lg:col-span-3">
+            <select
+              id="filter-sort"
+              aria-label="Sort Submissions"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              <option value="newest">Sort: Newest First</option>
+              <option value="oldest">Sort: Oldest First</option>
+              <option value="name_asc">Sort: Student Name (A–Z)</option>
+              <option value="name_desc">Sort: Student Name (Z–A)</option>
+              <option value="class_asc">Sort: Class (Year 1–6)</option>
+              <option value="status">Sort: Print Status</option>
+              <option value="size_desc">Sort: File Size (Largest)</option>
+              <option value="size_asc">Sort: File Size (Smallest)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary Row + All Visible Quick Actions -->
+        <div class="pt-3 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+            <span id="filter-summary-text">Showing 0 of 0 prints</span>
+            <button
+              id="btn-reset-filters"
+              type="button"
+              class="hidden text-indigo-600 hover:text-indigo-800 font-semibold underline"
+            >
+              Reset Filters
+            </button>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+              <input
+                id="checkbox-zip-folders"
+                type="checkbox"
+                checked
+                class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span>Organize in class folders inside ZIP</span>
+            </label>
+          </div>
+
+          <div id="all-visible-actions" class="hidden flex-wrap items-center gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Sticky Bulk Action Bar for Selected Prints -->
+      <div
+        id="bulk-selection-bar"
+        class="hidden sticky top-16 z-20 bg-indigo-950 text-white rounded-2xl shadow-lg px-4 py-3 flex-col md:flex-row md:items-center md:justify-between gap-3"
+      ></div>
+
+      <!-- Submissions Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="table-empty-state" class="p-12 text-center">
+          <svg class="h-10 w-10 text-slate-300 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+          </svg>
+          <p class="mt-3 text-sm font-semibold text-slate-700">No STL submissions found</p>
+          <p id="table-empty-subtext" class="mt-1 text-xs text-slate-500">
+            Students can upload their .stl files from the Student Upload tab.
+          </p>
+        </div>
+
+        <div id="table-wrapper" class="hidden overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th class="py-3 pl-4 pr-2 w-10">
+                  <input
+                    id="master-checkbox"
+                    type="checkbox"
+                    aria-label="Select all visible prints"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                </th>
+                <th class="py-3 px-3">Renamed STL File</th>
+                <th class="py-3 px-3">Class</th>
+                <th class="py-3 px-3">Submitted</th>
+                <th class="py-3 px-3">Print Status</th>
+                <th class="py-3 pl-3 pr-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="submissions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ====================================================================== -->
+  <!-- APPLICATION JAVASCRIPT                                                 -->
+  <!-- ====================================================================== -->
+  <script>
+    // ========================================================================
+    // 1. CONFIGURATION — PASTE YOUR DEPLOYED APPS SCRIPT DETAILS BELOW
+    //    BEFORE EMBEDDING INTO GOOGLE SITES SO AUTO-SYNC WORKS FOR STUDENTS
+    // ========================================================================
+    const GOOGLE_DRIVE_FOLDER_ID = '1MrUrr2bzk1OvbSeXotJ0jVIUWTFhkgqx';
+    const BAKED_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMcuytw3ZizBF2W8Hlws6BiFhbz4XDpUpsaTR19B19IsKrZ06M42M7D12E99mmb0K8fQ/exec';
+    const BAKED_SECRET_KEY = 'STL-T9KQ-DL8H-AST3';
+    const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2.0 MB safety cap
+
+    // All 30 school classes grouped by Year 1 through Year 6
+    const CLASS_GROUPS = [
+      { year: 'Year 1', classes: ['1MB', '1A', '1K', '1M', '1Q'] },
+      { year: 'Year 2', classes: ['2W', '2B', '2N', '2O', '2T'] },
+      { year: 'Year 3', classes: ['3M', '3F', '3I', '3K', '3R'] },
+      { year: 'Year 4', classes: ['4DR', '4D', '4F', '4P', '4R'] },
+      { year: 'Year 5', classes: ['5H', '5B', '5M', '5R', '5S'] },
+      { year: 'Year 6', classes: ['6R', '6C', '6D', '6S', '6W'] }
+    ];
+
+    const ALL_CLASSES_ORDERED = CLASS_GROUPS.flatMap((g) => g.classes);
+    const STATUS_OPTIONS = ['Pending', 'Printing', 'Completed'];
+    const STATUS_STYLES = {
+      Pending: 'bg-amber-50 text-amber-800 border-amber-200',
+      Printing: 'bg-blue-50 text-blue-800 border-blue-200',
+      Completed: 'bg-emerald-50 text-emerald-800 border-emerald-200'
+    };
+
+    // ========================================================================
+    // 2. APPLICATION STATE (IN-MEMORY FOR GOOGLE SITES IFRAME COMPATIBILITY)
+    // ========================================================================
+    function generateSecretKey() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const seg = (len) =>
+        Array.from({ length: len }, () =>
+          chars.charAt(Math.floor(Math.random() * chars.length))
+        ).join('');
+      return `STL-${seg(4)}-${seg(4)}-${seg(4)}`;
+    }
+
+    const state = {
+      activeTab: 'student',
+      submissions: [],
+      selectedFile: null,
+      driveWebAppUrl: BAKED_WEB_APP_URL.trim(),
+      driveSecretKey: BAKED_SECRET_KEY.trim() || generateSecretKey(),
+      showDriveSetup: false,
+      selectedFolder: 'ALL',
+      yearFilter: 'All Years',
+      statusFilter: 'All Statuses',
+      searchQuery: '',
+      sortBy: 'newest',
+      organizeByClassFolders: true,
+      selectedIds: new Set(),
+      syncingIds: new Set(),
+      confirmDeleteId: null,
+      confirmBulkDeleteTarget: null,
+      isZipping: false,
+      toastTimer: null
+    };
+
+    // ========================================================================
+    // 3. UTILITY & ZERO-DEPENDENCY PKZIP HELPERS
+    // ========================================================================
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function sanitizeSegment(value) {
+      return String(value || '')
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, '')
+        .replace(/\s+/g, ' ');
+    }
+
+    function buildRenamedFilename(className, studentName, initials) {
+      const cleanClass = sanitizeSegment(className) || 'Class';
+      const cleanName = sanitizeSegment(studentName) || 'Student';
+      const cleanInitials = sanitizeSegment(initials).toUpperCase() || 'XX';
+      return `${cleanClass} - ${cleanName} (${cleanInitials}).stl`;
+    }
+
+    function getYearGroupForClass(className) {
+      const match = CLASS_GROUPS.find((g) => g.classes.includes(className));
+      return match ? match.year : 'Other';
+    }
+
+    function getClassSortIndex(className) {
+      const idx = ALL_CLASSES_ORDERED.indexOf(className);
+      return idx === -1 ? 999 : idx;
+    }
+
+    function formatBytes(bytes) {
+      const num = Number(bytes) || 0;
+      if (num < 1024) return `${num} B`;
+      if (num < 1024 * 1024) return `${(num / 1024).toFixed(1)} KB`;
+      return `${(num / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function formatDate(ms) {
+      if (!ms) return 'Just now';
+      try {
+        return new Date(ms).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch {
+        return 'Recent';
+      }
+    }
+
+    function base64DataUrlToUint8Array(dataUrl) {
+      const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    const CRC32_TABLE = (() => {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let j = 0; j < 8; j++) {
+          c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        }
+        table[i] = c >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(bytes) {
+      let crc = 0xffffffff;
+      for (let i = 0; i < bytes.length; i++) {
+        crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+      }
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function getUniqueZipPath(path, usedPaths) {
+      if (!usedPaths.has(path)) {
+        usedPaths.add(path);
+        return path;
+      }
+      const dotIdx = path.lastIndexOf('.');
+      const base = dotIdx > 0 ? path.slice(0, dotIdx) : path;
+      const ext = dotIdx > 0 ? path.slice(dotIdx) : '';
+      let counter = 2;
+      let candidate = `${base} (${counter})${ext}`;
+      while (usedPaths.has(candidate)) {
+        counter++;
+        candidate = `${base} (${counter})${ext}`;
+      }
+      usedPaths.add(candidate);
+      return candidate;
+    }
+
+    function buildZipBlob(entries) {
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      const now = new Date();
+      const dosTime =
+        ((now.getHours() & 0x1f) << 11) |
+        ((now.getMinutes() & 0x3f) << 5) |
+        ((now.getSeconds() >> 1) & 0x1f);
+      const dosDate =
+        (((Math.max(1980, now.getFullYear()) - 1980) & 0x7f) << 9) |
+        (((now.getMonth() + 1) & 0x0f) << 5) |
+        (now.getDate() & 0x1f);
+
+      for (const entry of entries) {
+        const nameBytes = encoder.encode(entry.path);
+        const dataBytes = entry.data;
+        const checksum = crc32(dataBytes);
+        const size = dataBytes.length;
+
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const lv = new DataView(localHeader.buffer);
+        lv.setUint32(0, 0x04034b50, true);
+        lv.setUint16(4, 20, true);
+        lv.setUint16(6, 0x0800, true);
+        lv.setUint16(8, 0, true);
+        lv.setUint16(10, dosTime, true);
+        lv.setUint16(12, dosDate, true);
+        lv.setUint32(14, checksum, true);
+        lv.setUint32(18, size, true);
+        lv.setUint32(22, size, true);
+        lv.setUint16(26, nameBytes.length, true);
+        lv.setUint16(28, 0, true);
+        localHeader.set(nameBytes, 30);
+
+        localParts.push(localHeader, dataBytes);
+
+        const centralHeader = new Uint8Array(46 + nameBytes.length);
+        const cv = new DataView(centralHeader.buffer);
+        cv.setUint32(0, 0x02014b50, true);
+        cv.setUint16(4, 20, true);
+        cv.setUint16(6, 20, true);
+        cv.setUint16(8, 0x0800, true);
+        cv.setUint16(10, 0, true);
+        cv.setUint16(12, dosTime, true);
+        cv.setUint16(14, dosDate, true);
+        cv.setUint32(16, checksum, true);
+        cv.setUint32(20, size, true);
+        cv.setUint32(24, size, true);
+        cv.setUint16(28, nameBytes.length, true);
+        cv.setUint16(30, 0, true);
+        cv.setUint16(32, 0, true);
+        cv.setUint16(34, 0, true);
+        cv.setUint16(36, 0, true);
+        cv.setUint32(38, 0, true);
+        cv.setUint32(42, offset, true);
+        centralHeader.set(nameBytes, 46);
+
+        centralParts.push(centralHeader);
+        offset += localHeader.length + size;
+      }
+
+      let centralSize = 0;
+      for (const part of centralParts) centralSize += part.length;
+
+      const endRecord = new Uint8Array(22);
+      const ev = new DataView(endRecord.buffer);
+      ev.setUint32(0, 0x06054b50, true);
+      ev.setUint16(4, 0, true);
+      ev.setUint16(6, 0, true);
+      ev.setUint16(8, entries.length, true);
+      ev.setUint16(10, entries.length, true);
+      ev.setUint32(12, centralSize, true);
+      ev.setUint32(16, offset, true);
+      ev.setUint16(20, 0, true);
+
+      return new Blob([...localParts, ...centralParts, endRecord], {
+        type: 'application/zip'
+      });
+    }
+
+    // ========================================================================
+    // 4. HARDENED GOOGLE APPS SCRIPT GENERATOR & UPLOAD HELPER
+    // ========================================================================
+    function buildAppsScriptTemplate(secretKey) {
+      const safeKey = String(secretKey || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'");
+      const allowedClassesLiteral = JSON.stringify(ALL_CLASSES_ORDERED);
+
+      return `function doPost(e) {
+  try {
+    var ROOT_FOLDER_ID = '${GOOGLE_DRIVE_FOLDER_ID}';
+    var SECRET_KEY = '${safeKey}';
+    var ALLOWED_CLASSES = ${allowedClassesLiteral};
+    var MAX_BYTES = 2 * 1024 * 1024; // 2 MB safety cap
+
+    var payload = JSON.parse(e.postData.contents || '{}');
+
+    // 1. Verify secret key so only your portal can upload
+    if (!SECRET_KEY || payload.secretKey !== SECRET_KEY) {
+      return jsonResponse({
+        ok: false,
+        error: 'Unauthorized: Invalid secret key.'
+      });
+    }
+
+    var rootFolder = DriveApp.getFolderById(ROOT_FOLDER_ID);
+
+    // Handle connection test from the Teacher Drive setup panel
+    if (payload.action === 'ping') {
+      return jsonResponse({
+        ok: true,
+        folderName: rootFolder.getName()
+      });
+    }
+
+    // 2. Allow only .stl files
+    var filename = String(payload.filename || '').trim();
+    if (!filename || !/\\.stl$/i.test(filename)) {
+      return jsonResponse({
+        ok: false,
+        error: 'Only .stl files are allowed.'
+      });
+    }
+    filename = filename.replace(/[\\\\/:*?"<>|]/g, '');
+
+    // 3. Allow only your 30 school class folders
+    var className = String(payload.className || '').trim();
+    if (ALLOWED_CLASSES.indexOf(className) === -1) {
+      return jsonResponse({
+        ok: false,
+        error: 'Invalid class folder: ' + className
+      });
+    }
+
+    // 4. Decode and enforce file size safety cap
+    var dataUrl = String(payload.fileData || '');
+    var base64 = dataUrl.indexOf(',') !== -1 ? dataUrl.split(',')[1] : dataUrl;
+    var bytes = Utilities.base64Decode(base64);
+    if (bytes.length > MAX_BYTES) {
+      return jsonResponse({
+        ok: false,
+        error: 'File exceeds the 2 MB safety limit.'
+      });
+    }
+
+    // Find or create the validated class subfolder inside your Drive folder
+    var existing = rootFolder.getFoldersByName(className);
+    var targetFolder = existing.hasNext()
+      ? existing.next()
+      : rootFolder.createFolder(className);
+
+    var blob = Utilities.newBlob(bytes, 'application/octet-stream', filename);
+    var createdFile = targetFolder.createFile(blob);
+
+    return jsonResponse({
+      ok: true,
+      fileId: createdFile.getId(),
+      fileUrl: createdFile.getUrl(),
+      folderName: targetFolder.getName()
+    });
+  } catch (err) {
+    return jsonResponse({ ok: false, error: err.toString() });
+  }
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+    }
+
+    async function uploadToGoogleDriveWebApp(webAppUrl, payload) {
+      const response = await fetch(webAppUrl.trim(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`Google Drive endpoint returned HTTP ${response.status}`);
+      }
+      const result = await response.json();
+      if (!result || !result.ok) {
+        throw new Error(result?.error || 'Google Drive upload failed');
+      }
+      return result;
+    }
+
+    // ========================================================================
+    // 5. TOAST NOTIFICATIONS & DOM REFERENCES
+    // ========================================================================
+    const dom = {
+      tabStudentBtn: document.getElementById('tab-student-btn'),
+      tabTeacherBtn: document.getElementById('tab-teacher-btn'),
+      teacherCountBadge: document.getElementById('teacher-count-badge'),
+      toastContainer: document.getElementById('toast-container'),
+      viewStudent: document.getElementById('view-student'),
+      viewTeacher: document.getElementById('view-teacher'),
+      studentFormCard: document.getElementById('student-form-card'),
+      studentSuccessCard: document.getElementById('student-success-card'),
+      studentDriveBadge: document.getElementById('student-drive-badge'),
+      studentForm: document.getElementById('student-upload-form'),
+      inputStudentName: document.getElementById('input-student-name'),
+      inputStudentInitials: document.getElementById('input-student-initials'),
+      inputStudentClass: document.getElementById('input-student-class'),
+      filenamePreview: document.getElementById('filename-preview'),
+      dropzone: document.getElementById('dropzone'),
+      inputStlFile: document.getElementById('input-stl-file'),
+      dropzoneEmpty: document.getElementById('dropzone-empty'),
+      dropzoneSelected: document.getElementById('dropzone-selected'),
+      selectedFileName: document.getElementById('selected-file-name'),
+      selectedFileMeta: document.getElementById('selected-file-meta'),
+      studentFormError: document.getElementById('student-form-error'),
+      studentFormErrorText: document.getElementById('student-form-error-text'),
+      studentSubmitBtn: document.getElementById('student-submit-btn'),
+      studentSubmitLabel: document.getElementById('student-submit-label'),
+      successClassName: document.getElementById('success-class-name'),
+      successFilename: document.getElementById('success-filename'),
+      successMeta: document.getElementById('success-meta'),
+      successDriveNote: document.getElementById('success-drive-note'),
+      submitAnotherBtn: document.getElementById('submit-another-btn'),
+      btnToggleDriveSetup: document.getElementById('btn-toggle-drive-setup'),
+      btnDriveStatusLabel: document.getElementById('btn-drive-status-label'),
+      driveSetupPanel: document.getElementById('drive-setup-panel'),
+      btnCloseDriveSetup: document.getElementById('btn-close-drive-setup'),
+      inputDriveSecret: document.getElementById('input-drive-secret'),
+      btnGenerateKey: document.getElementById('btn-generate-key'),
+      appsScriptTextarea: document.getElementById('apps-script-textarea'),
+      btnCopyScript: document.getElementById('btn-copy-script'),
+      copyScriptLabel: document.getElementById('copy-script-label'),
+      inputDriveUrl: document.getElementById('input-drive-url'),
+      btnTestDrive: document.getElementById('btn-test-drive'),
+      btnSaveDrive: document.getElementById('btn-save-drive'),
+      driveTestResult: document.getElementById('drive-test-result'),
+      selectJumpClass: document.getElementById('select-jump-class'),
+      classFoldersGrid: document.getElementById('class-folders-grid'),
+      filterSearch: document.getElementById('filter-search'),
+      filterYear: document.getElementById('filter-year'),
+      filterStatus: document.getElementById('filter-status'),
+      filterSort: document.getElementById('filter-sort'),
+      filterSummaryText: document.getElementById('filter-summary-text'),
+      btnResetFilters: document.getElementById('btn-reset-filters'),
+      checkboxZipFolders: document.getElementById('checkbox-zip-folders'),
+      allVisibleActions: document.getElementById('all-visible-actions'),
+      bulkSelectionBar: document.getElementById('bulk-selection-bar'),
+      tableEmptyState: document.getElementById('table-empty-state'),
+      tableEmptySubtext: document.getElementById('table-empty-subtext'),
+      tableWrapper: document.getElementById('table-wrapper'),
+      masterCheckbox: document.getElementById('master-checkbox'),
+      submissionsTbody: document.getElementById('submissions-tbody')
+    };
+
+    function showToast(message, type = 'success') {
+      const isError = type === 'error';
+      dom.toastContainer.innerHTML = `
+        <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ${
+          isError
+            ? 'bg-red-50 border-red-200 text-red-800'
+            : 'bg-slate-900 border-slate-800 text-white'
+        }">
+          <span>${escapeHtml(message)}</span>
+        </div>
+      `;
+      dom.toastContainer.classList.remove('hidden');
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => {
+        dom.toastContainer.classList.add('hidden');
+      }, 4000);
+    }
+
+    // ========================================================================
+    // 6. STUDENT UPLOAD LOGIC
+    // ========================================================================
+    function populateStudentClassDropdown() {
+      dom.inputStudentClass.innerHTML = '<option value="">Select your class...</option>';
+      CLASS_GROUPS.forEach((group) => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = group.year;
+        group.classes.forEach((cls) => {
+          const opt = document.createElement('option');
+          opt.value = cls;
+          opt.textContent = cls;
+          optgroup.appendChild(opt);
+        });
+        dom.inputStudentClass.appendChild(optgroup);
+      });
+    }
+
+    function updateFilenamePreview() {
+      const cls = dom.inputStudentClass.value || '[Class]';
+      const name = sanitizeSegment(dom.inputStudentName.value) || '[Student Name]';
+      const init = sanitizeSegment(dom.inputStudentInitials.value).toUpperCase() || '[Initials]';
+      dom.filenamePreview.textContent = `${cls} - ${name} (${init}).stl`;
+    }
+
+    function showStudentError(msg) {
+      if (!msg) {
+        dom.studentFormError.classList.add('hidden');
+        dom.studentFormErrorText.textContent = '';
+      } else {
+        dom.studentFormErrorText.textContent = msg;
+        dom.studentFormError.classList.remove('hidden');
+      }
+    }
+
+    function setSelectedFile(file) {
+      showStudentError('');
+      if (!file) {
+        state.selectedFile = null;
+        dom.dropzoneEmpty.classList.remove('hidden');
+        dom.dropzoneSelected.classList.add('hidden');
+        dom.dropzoneSelected.classList.remove('flex');
+        dom.dropzone.classList.remove('border-emerald-400', 'bg-emerald-50/40');
+        dom.dropzone.classList.add('border-slate-300', 'bg-slate-50/70');
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith('.stl')) {
+        showStudentError('Please choose a valid .stl 3D model file.');
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        showStudentError(
+          `This file is ${formatBytes(file.size)}. Please keep .stl files under ${formatBytes(MAX_FILE_SIZE_BYTES)}.`
+        );
+        return;
+      }
+      state.selectedFile = file;
+      dom.selectedFileName.textContent = file.name;
+      dom.selectedFileMeta.textContent = `${formatBytes(file.size)} • Click to change file`;
+      dom.dropzoneEmpty.classList.add('hidden');
+      dom.dropzoneSelected.classList.remove('hidden');
+      dom.dropzoneSelected.classList.add('flex');
+      dom.dropzone.classList.remove('border-slate-300', 'bg-slate-50/70');
+      dom.dropzone.classList.add('border-emerald-400', 'bg-emerald-50/40');
+    }
+
+    async function handleStudentSubmit(e) {
+      e.preventDefault();
+      showStudentError('');
+
+      const cleanName = sanitizeSegment(dom.inputStudentName.value);
+      const cleanInitials = sanitizeSegment(dom.inputStudentInitials.value).toUpperCase();
+      const className = dom.inputStudentClass.value;
+
+      if (!cleanName) return showStudentError('Please enter your full name.');
+      if (!cleanInitials) return showStudentError('Please enter your initials.');
+      if (!className) return showStudentError('Please select your class from the dropdown.');
+      if (!state.selectedFile) return showStudentError('Please attach your .stl file.');
+
+      dom.studentSubmitBtn.disabled = true;
+      dom.studentSubmitLabel.textContent = 'Uploading & Saving...';
+
+      try {
+        const fileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Could not read the STL file.'));
+          reader.readAsDataURL(state.selectedFile);
+        });
+
+        const generatedFilename = buildRenamedFilename(className, cleanName, cleanInitials);
+        let driveSyncStatus = state.driveWebAppUrl ? 'pending' : 'not_configured';
+        let driveFileUrl = '';
+        let driveFileId = '';
+        let driveSyncError = '';
+
+        if (state.driveWebAppUrl) {
+          try {
+            const res = await uploadToGoogleDriveWebApp(state.driveWebAppUrl, {
+              secretKey: state.driveSecretKey,
+              filename: generatedFilename,
+              className,
+              fileData
+            });
+            driveSyncStatus = 'synced';
+            driveFileUrl = res.fileUrl || '';
+            driveFileId = res.fileId || '';
+          } catch (err) {
+            driveSyncStatus = 'failed';
+            driveSyncError = err.message || 'Drive sync failed';
+          }
+        }
+
+        const record = {
+          id: `stl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          studentName: cleanName,
+          initials: cleanInitials,
+          className,
+          yearGroup: getYearGroupForClass(className),
+          originalFilename: state.selectedFile.name,
+          generatedFilename,
+          fileSize: state.selectedFile.size,
+          fileData,
+          status: 'Pending',
+          createdAt: Date.now(),
+          driveSyncStatus,
+          driveFileUrl,
+          driveFileId,
+          driveSyncError
+        };
+
+        state.submissions.unshift(record);
+
+        // Show confirmation card
+        dom.successClassName.textContent = className;
+        dom.successFilename.textContent = generatedFilename;
+        dom.successMeta.textContent = `Size: ${formatBytes(record.fileSize)} • Status: Pending Print`;
+        if (driveSyncStatus === 'synced') {
+          dom.successDriveNote.textContent = `✓ Automatically saved to Google Drive (${className} folder)`;
+          dom.successDriveNote.classList.remove('hidden');
+        } else {
+          dom.successDriveNote.classList.add('hidden');
+        }
+
+        dom.studentFormCard.classList.add('hidden');
+        dom.studentSuccessCard.classList.remove('hidden');
+
+        // Reset form fields
+        dom.studentForm.reset();
+        dom.inputStlFile.value = '';
+        setSelectedFile(null);
+        updateFilenamePreview();
+
+        showToast(
+          driveSyncStatus === 'synced'
+            ? `Uploaded "${generatedFilename}" & synced to Google Drive!`
+            : `Uploaded "${generatedFilename}" to ${className}!`
+        );
+        renderAll();
+      } catch (err) {
+        showStudentError('Something went wrong while uploading. Please try again.');
+      } finally {
+        dom.studentSubmitBtn.disabled = false;
+        dom.studentSubmitLabel.textContent = 'Submit STL for 3D Printing';
+      }
+    }
+
+    // ========================================================================
+    // 7. TEACHER DRIVE FILTERING, SORTING, BULK ACTIONS & RENDERING
+    // ========================================================================
+    function getFilteredSubmissions() {
+      const q = state.searchQuery.trim().toLowerCase();
+      const filtered = state.submissions.filter((sub) => {
+        if (state.selectedFolder !== 'ALL' && sub.className !== state.selectedFolder) return false;
+        if (state.yearFilter !== 'All Years' && sub.yearGroup !== state.yearFilter) return false;
+        if (state.statusFilter !== 'All Statuses' && sub.status !== state.statusFilter) return false;
+        if (q) {
+          const hay = [
+            sub.studentName,
+            sub.initials,
+            sub.className,
+            sub.yearGroup,
+            sub.generatedFilename,
+            sub.originalFilename
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      const statusOrder = { Pending: 0, Printing: 1, Completed: 2 };
+      return filtered.sort((a, b) => {
+        switch (state.sortBy) {
+          case 'oldest':
+            return a.createdAt - b.createdAt;
+          case 'name_asc':
+            return (a.studentName || '').localeCompare(b.studentName || '');
+          case 'name_desc':
+            return (b.studentName || '').localeCompare(a.studentName || '');
+          case 'class_asc':
+            return (
+              getClassSortIndex(a.className) - getClassSortIndex(b.className) ||
+              (a.studentName || '').localeCompare(b.studentName || '')
+            );
+          case 'status':
+            return (
+              (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9) ||
+              b.createdAt - a.createdAt
+            );
+          case 'size_desc':
+            return (b.fileSize || 0) - (a.fileSize || 0);
+          case 'size_asc':
+            return (a.fileSize || 0) - (b.fileSize || 0);
+          case 'newest':
+          default:
+            return b.createdAt - a.createdAt;
+        }
+      });
+    }
+
+    function downloadSingleSubmission(sub) {
+      if (!sub || !sub.fileData) {
+        showToast('File data is missing for this submission.', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = sub.fileData;
+      link.download = sub.generatedFilename || `${sub.id}.stl`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function downloadBatchZip(targetSubmissions) {
+      const valid = targetSubmissions.filter((s) => s.fileData);
+      if (!valid.length) {
+        showToast('No downloadable STL files in this batch.', 'error');
+        return;
+      }
+      state.isZipping = true;
+      renderTeacherDrive();
+
+      try {
+        const usedPaths = new Set();
+        const entries = valid.map((sub) => {
+          const safeFilename = sanitizeSegment(sub.generatedFilename) || `${sub.id}.stl`;
+          const safeClass = sanitizeSegment(sub.className) || 'Uncategorized';
+          const rawPath = state.organizeByClassFolders
+            ? `${safeClass}/${safeFilename}`
+            : safeFilename;
+          return {
+            path: getUniqueZipPath(rawPath, usedPaths),
+            data: base64DataUrlToUint8Array(sub.fileData)
+          };
+        });
+
+        const zipBlob = buildZipBlob(entries);
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const label = state.selectedFolder === 'ALL' ? 'All' : state.selectedFolder;
+        const zipFilename = `3D_Prints_${label}_${dateStr}.zip`;
+
+        const url = URL.createObjectURL(zipBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = zipFilename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        showToast(
+          `Downloaded "${zipFilename}" (${valid.length} ${valid.length === 1 ? 'file' : 'files'}).`
+        );
+      } catch (err) {
+        showToast('Failed to build ZIP archive.', 'error');
+      } finally {
+        state.isZipping = false;
+        renderTeacherDrive();
+      }
+    }
+
+    async function syncSubmissionsToDrive(targetSubmissions) {
+      if (!state.driveWebAppUrl) {
+        showToast('Connect your Google Apps Script URL first in Drive Setup.', 'error');
+        return;
+      }
+      const list = targetSubmissions.filter((s) => s.fileData);
+      if (!list.length) return;
+
+      list.forEach((s) => state.syncingIds.add(s.id));
+      renderTeacherDrive();
+
+      let synced = 0;
+      let failed = 0;
+
+      for (const sub of list) {
+        try {
+          const res = await uploadToGoogleDriveWebApp(state.driveWebAppUrl, {
+            secretKey: state.driveSecretKey,
+            filename: sub.generatedFilename || `${sub.id}.stl`,
+            className: sub.className || 'Uncategorized',
+            fileData: sub.fileData
+          });
+          sub.driveSyncStatus = 'synced';
+          sub.driveFileUrl = res.fileUrl || '';
+          sub.driveFileId = res.fileId || '';
+          sub.driveSyncError = '';
+          synced++;
+        } catch (err) {
+          sub.driveSyncStatus = 'failed';
+          sub.driveSyncError = err.message || 'Drive sync failed';
+          failed++;
+        } finally {
+          state.syncingIds.delete(sub.id);
+        }
+      }
+
+      if (synced > 0 && failed === 0) {
+        showToast(`Synced ${synced} ${synced === 1 ? 'file' : 'files'} to Google Drive!`);
+      } else if (synced > 0) {
+        showToast(`Synced ${synced} files to Drive (${failed} failed).`, 'error');
+      } else {
+        showToast('Could not sync to Google Drive. Check your Web App URL and Secret Key.', 'error');
+      }
+      renderTeacherDrive();
+    }
+
+    function updateStatusForIds(ids, newStatus) {
+      if (!ids.length) return;
+      const idSet = new Set(ids);
+      state.submissions.forEach((sub) => {
+        if (idSet.has(sub.id)) sub.status = newStatus;
+      });
+      showToast(`Updated ${ids.length} ${ids.length === 1 ? 'print' : 'prints'} to "${newStatus}".`);
+      renderTeacherDrive();
+    }
+
+    function deleteIds(ids) {
+      if (!ids.length) return;
+      const idSet = new Set(ids);
+      state.submissions = state.submissions.filter((sub) => !idSet.has(sub.id));
+      ids.forEach((id) => state.selectedIds.delete(id));
+      state.confirmDeleteId = null;
+      state.confirmBulkDeleteTarget = null;
+      showToast(`Deleted ${ids.length} ${ids.length === 1 ? 'print' : 'prints'}.`);
+      renderAll();
+    }
+
+    function renderDriveIndicators() {
+      const connected = Boolean(state.driveWebAppUrl);
+      dom.studentDriveBadge.classList.toggle('hidden', !connected);
+      dom.btnDriveStatusLabel.textContent = connected
+        ? 'Drive Auto-Sync: ON'
+        : 'Connect Google Drive';
+      dom.btnToggleDriveSetup.className = `inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-semibold transition-colors ${
+        connected
+          ? 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-800'
+          : 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700'
+      }`;
+      dom.driveSetupPanel.classList.toggle('hidden', !state.showDriveSetup);
+      dom.appsScriptTextarea.value = buildAppsScriptTemplate(dom.inputDriveSecret.value);
+    }
+
+    function renderTeacherDrive() {
+      dom.teacherCountBadge.textContent = String(state.submissions.length);
+
+      // Compute folder counts
+      const folderMap = {};
+      state.submissions.forEach((sub) => {
+        const cls = sub.className || 'Uncategorized';
+        folderMap[cls] = (folderMap[cls] || 0) + 1;
+      });
+      const folderCounts = Object.entries(folderMap).sort(
+        ([a], [b]) => getClassSortIndex(a) - getClassSortIndex(b) || a.localeCompare(b)
+      );
+
+      // Jump-to-class dropdown (all 30 classes)
+      let jumpHtml = `<option value="ALL">All Submissions (${state.submissions.length})</option>`;
+      CLASS_GROUPS.forEach((group) => {
+        jumpHtml += `<optgroup label="${escapeHtml(group.year)}">`;
+        group.classes.forEach((cls) => {
+          const count = folderMap[cls] || 0;
+          const selectedAttr = state.selectedFolder === cls ? 'selected' : '';
+          jumpHtml += `<option value="${escapeHtml(cls)}" ${selectedAttr}>${escapeHtml(cls)} (${count})</option>`;
+        });
+        jumpHtml += `</optgroup>`;
+      });
+      dom.selectJumpClass.innerHTML = jumpHtml;
+      dom.selectJumpClass.value = state.selectedFolder;
+
+      // Class folder cards
+      let cardsHtml = `
+        <button type="button" data-folder="ALL" class="folder-card-btn p-3 rounded-xl border text-left transition-all ${
+          state.selectedFolder === 'ALL'
+            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+            : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
+        }">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold">ALL</span>
+            <span class="text-xs font-bold px-1.5 py-0.5 rounded-md ${
+              state.selectedFolder === 'ALL' ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600'
+            }">${state.submissions.length}</span>
+          </div>
+          <div class="mt-2 text-xs font-bold truncate">All Classes</div>
+        </button>
+      `;
+      folderCounts.forEach(([cls, count]) => {
+        const active = state.selectedFolder === cls;
+        cardsHtml += `
+          <button type="button" data-folder="${escapeHtml(cls)}" class="folder-card-btn p-3 rounded-xl border text-left transition-all ${
+            active
+              ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+              : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
+          }">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold ${active ? 'text-indigo-200' : 'text-amber-500'}">&#128193;</span>
+              <span class="text-xs font-bold px-1.5 py-0.5 rounded-md ${
+                active ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600'
+              }">${count}</span>
+            </div>
+            <div class="mt-2 text-xs font-bold truncate">${escapeHtml(cls)}</div>
+          </button>
+        `;
+      });
+      dom.classFoldersGrid.innerHTML = cardsHtml;
+
+      // Filtered submissions
+      const filtered = getFilteredSubmissions();
+      const visibleIds = filtered.map((s) => s.id);
+      const selectedSubmissions = state.submissions.filter((s) => state.selectedIds.has(s.id));
+      const selectedVisibleCount = visibleIds.filter((id) => state.selectedIds.has(id)).length;
+      const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+      const someVisibleSelected = selectedVisibleCount > 0 && selectedVisibleCount < visibleIds.length;
+
+      dom.masterCheckbox.checked = allVisibleSelected;
+      dom.masterCheckbox.indeterminate = someVisibleSelected;
+
+      // Summary & Reset Filters
+      dom.filterSummaryText.innerHTML = `Showing <strong class="text-slate-900">${filtered.length}</strong> of <strong class="text-slate-900">${state.submissions.length}</strong> prints`;
+      const hasActiveFilters =
+        state.selectedFolder !== 'ALL' ||
+        state.yearFilter !== 'All Years' ||
+        state.statusFilter !== 'All Statuses' ||
+        state.searchQuery.trim() !== '' ||
+        state.sortBy !== 'newest';
+      dom.btnResetFilters.classList.toggle('hidden', !hasActiveFilters);
+
+      // All-Visible Quick Actions
+      if (filtered.length > 0) {
+        const unsyncedVisible = filtered.filter((s) => s.driveSyncStatus !== 'synced' && s.fileData);
+        let actionsHtml = `
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">All Visible:</span>
+          <select id="select-all-visible-status" aria-label="Change status of all visible prints" class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 outline-none">
+            <option value="">Set All Status...</option>
+            ${STATUS_OPTIONS.map((st) => `<option value="${st}">Mark All ${st}</option>`).join('')}
+          </select>
+          <button id="btn-download-all-zip" type="button" ${state.isZipping ? 'disabled' : ''} class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm disabled:opacity-60 transition-colors">
+            ${state.isZipping ? 'Building ZIP...' : `Download All ZIP (${filtered.length})`}
+          </button>
+        `;
+        if (state.driveWebAppUrl && unsyncedVisible.length > 0) {
+          actionsHtml += `
+            <button id="btn-sync-all-visible" type="button" ${state.syncingIds.size > 0 ? 'disabled' : ''} class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm disabled:opacity-60 transition-colors">
+              ${state.syncingIds.size > 0 ? 'Syncing...' : `Sync to Drive (${unsyncedVisible.length})`}
+            </button>
+          `;
+        }
+        if (state.confirmBulkDeleteTarget === 'visible') {
+          actionsHtml += `
+            <div class="inline-flex items-center gap-1.5 bg-red-50 border border-red-200 px-2 py-1 rounded-lg">
+              <button id="btn-confirm-delete-visible" type="button" class="px-2 py-0.5 rounded bg-red-600 hover:bg-red-700 text-white text-xs font-semibold">
+                Confirm Delete All (${filtered.length})
+              </button>
+              <button id="btn-cancel-bulk-delete" type="button" class="px-2 py-0.5 rounded text-slate-600 hover:bg-slate-200 text-xs font-semibold">
+                Cancel
+              </button>
+            </div>
+          `;
+        } else {
+          actionsHtml += `
+            <button id="btn-delete-all-visible" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-semibold transition-colors">
+              Delete All (${filtered.length})
+            </button>
+          `;
+        }
+        dom.allVisibleActions.innerHTML = actionsHtml;
+        dom.allVisibleActions.classList.remove('hidden');
+        dom.allVisibleActions.classList.add('flex');
+      } else {
+        dom.allVisibleActions.classList.add('hidden');
+        dom.allVisibleActions.classList.remove('flex');
+      }
+
+      // Sticky Bulk Selection Bar
+      if (selectedSubmissions.length > 0) {
+        const totalBytes = selectedSubmissions.reduce((sum, s) => sum + (Number(s.fileSize) || 0), 0);
+        const unsyncedSelected = selectedSubmissions.filter((s) => s.driveSyncStatus !== 'synced' && s.fileData);
+        let bulkHtml = `
+          <div class="flex items-center gap-3 text-xs sm:text-sm">
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-600 font-bold">${selectedSubmissions.length} selected</span>
+            <span class="text-indigo-200">Total size: ${formatBytes(totalBytes)}</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            ${STATUS_OPTIONS.map(
+              (st) =>
+                `<button type="button" data-bulk-status="${st}" class="bulk-status-btn px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors">Mark ${st}</button>`
+            ).join('')}
+            <button id="btn-download-selected-zip" type="button" ${state.isZipping ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold shadow-sm transition-colors">
+              ${state.isZipping ? 'Building ZIP...' : `Download ZIP (${selectedSubmissions.length})`}
+            </button>
+            ${
+              state.driveWebAppUrl && unsyncedSelected.length > 0
+                ? `<button id="btn-sync-selected" type="button" ${state.syncingIds.size > 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-semibold shadow-sm transition-colors">Sync (${unsyncedSelected.length})</button>`
+                : ''
+            }
+            ${
+              state.confirmBulkDeleteTarget === 'selected'
+                ? `<div class="inline-flex items-center gap-1.5 bg-red-900/80 border border-red-400/50 px-2 py-1 rounded-lg">
+                    <button id="btn-confirm-delete-selected" type="button" class="px-2 py-0.5 rounded bg-red-600 hover:bg-red-500 text-white text-xs font-semibold">Confirm Delete (${selectedSubmissions.length})</button>
+                    <button id="btn-cancel-selected-delete" type="button" class="px-2 py-0.5 rounded text-red-100 hover:bg-white/10 text-xs font-semibold">Cancel</button>
+                  </div>`
+                : `<button id="btn-delete-selected" type="button" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-colors">Delete (${selectedSubmissions.length})</button>`
+            }
+            <button id="btn-clear-selection" type="button" class="px-2.5 py-1.5 rounded-lg text-indigo-200 hover:text-white hover:bg-white/10 text-xs font-semibold">Clear</button>
+          </div>
+        `;
+        dom.bulkSelectionBar.innerHTML = bulkHtml;
+        dom.bulkSelectionBar.classList.remove('hidden');
+        dom.bulkSelectionBar.classList.add('flex');
+      } else {
+        dom.bulkSelectionBar.classList.add('hidden');
+        dom.bulkSelectionBar.classList.remove('flex');
+      }
+
+      // Submissions Table
+      if (filtered.length === 0) {
+        dom.tableEmptyState.classList.remove('hidden');
+        dom.tableWrapper.classList.add('hidden');
+        dom.tableEmptySubtext.textContent =
+          state.submissions.length === 0
+            ? 'Students can upload their .stl files from the Student Upload tab.'
+            : 'Try adjusting your search, year, or status filters.';
+        return;
+      }
+
+      dom.tableEmptyState.classList.add('hidden');
+      dom.tableWrapper.classList.remove('hidden');
+
+      dom.submissionsTbody.innerHTML = filtered
+        .map((sub) => {
+          const isSelected = state.selectedIds.has(sub.id);
+          const isSyncing = state.syncingIds.has(sub.id);
+          const statusStyle = STATUS_STYLES[sub.status] || STATUS_STYLES.Pending;
+
+          let driveBadgeHtml = '';
+          if (sub.driveSyncStatus === 'synced') {
+            driveBadgeHtml = sub.driveFileUrl
+              ? `<span>&bull;</span><a href="${escapeHtml(sub.driveFileUrl)}" target="_blank" rel="noopener noreferrer" class="text-emerald-700 font-semibold hover:underline">&#10003; In Google Drive</a>`
+              : `<span>&bull;</span><span class="text-emerald-700 font-semibold">&#10003; In Google Drive</span>`;
+          } else if (sub.driveSyncStatus === 'failed') {
+            driveBadgeHtml = `<span>&bull;</span><span class="text-red-600 font-semibold">Drive sync failed</span>`;
+          }
+
+          return `
+            <tr class="transition-colors ${isSelected ? 'bg-indigo-50/50' : 'hover:bg-slate-50/80'}">
+              <td class="py-3.5 pl-4 pr-2 align-middle">
+                <input type="checkbox" data-row-select="${escapeHtml(sub.id)}" ${isSelected ? 'checked' : ''} aria-label="Select ${escapeHtml(sub.generatedFilename)}" class="row-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              </td>
+              <td class="py-3.5 px-3 align-middle">
+                <div class="font-mono text-xs sm:text-sm font-semibold text-slate-900 break-all">${escapeHtml(sub.generatedFilename)}</div>
+                <div class="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span>${escapeHtml(sub.studentName)}</span>
+                  <span>&bull;</span>
+                  <span>${formatBytes(sub.fileSize)}</span>
+                  ${driveBadgeHtml}
+                </div>
+              </td>
+              <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">${escapeHtml(sub.className)}</span>
+                <div class="text-[11px] text-slate-400 mt-0.5">${escapeHtml(sub.yearGroup)}</div>
+              </td>
+              <td class="py-3.5 px-3 align-middle whitespace-nowrap text-xs text-slate-500">${formatDate(sub.createdAt)}</td>
+              <td class="py-3.5 px-3 align-middle whitespace-nowrap">
+                <select data-row-status="${escapeHtml(sub.id)}" aria-label="Status for ${escapeHtml(sub.generatedFilename)}" class="row-status-select px-2.5 py-1 rounded-lg border text-xs font-semibold outline-none cursor-pointer ${statusStyle}">
+                  ${STATUS_OPTIONS.map(
+                    (st) => `<option value="${st}" ${sub.status === st ? 'selected' : ''}>${st}</option>`
+                  ).join('')}
+                </select>
+              </td>
+              <td class="py-3.5 pl-3 pr-4 align-middle text-right whitespace-nowrap">
+                <div class="inline-flex items-center justify-end gap-1.5">
+                  ${
+                    state.driveWebAppUrl && sub.driveSyncStatus !== 'synced'
+                      ? `<button type="button" data-row-sync="${escapeHtml(sub.id)}" ${isSyncing ? 'disabled' : ''} class="row-sync-btn px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold disabled:opacity-50 transition-colors">${isSyncing ? 'Syncing...' : 'Sync'}</button>`
+                      : ''
+                  }
+                  <button type="button" data-row-download="${escapeHtml(sub.id)}" class="row-download-btn px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors">Download</button>
+                  ${
+                    state.confirmDeleteId === sub.id
+                      ? `<button type="button" data-row-delete-confirm="${escapeHtml(sub.id)}" class="row-delete-confirm-btn px-2 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold">Confirm</button>
+                         <button type="button" class="row-delete-cancel-btn px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Cancel</button>`
+                      : `<button type="button" data-row-delete="${escapeHtml(sub.id)}" class="row-delete-btn px-2 py-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors" aria-label="Delete submission">Delete</button>`
+                  }
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    function renderAll() {
+      const isStudent = state.activeTab === 'student';
+      dom.viewStudent.classList.toggle('hidden', !isStudent);
+      dom.viewTeacher.classList.toggle('hidden', isStudent);
+
+      dom.tabStudentBtn.className = `px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all ${
+        isStudent ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+      }`;
+      dom.tabTeacherBtn.className = `px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+        !isStudent ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+      }`;
+
+      renderDriveIndicators();
+      renderTeacherDrive();
+    }
+
+    // ========================================================================
+    // 8. EVENT LISTENERS & INITIALIZATION
+    // ========================================================================
+    function bindEvents() {
+      // Navigation Tabs
+      dom.tabStudentBtn.addEventListener('click', () => {
+        state.activeTab = 'student';
+        renderAll();
+      });
+      dom.tabTeacherBtn.addEventListener('click', () => {
+        state.activeTab = 'teacher';
+        renderAll();
+      });
+
+      // Student Form Inputs & Live Filename Preview
+      dom.inputStudentName.addEventListener('input', updateFilenamePreview);
+      dom.inputStudentInitials.addEventListener('input', () => {
+        dom.inputStudentInitials.value = dom.inputStudentInitials.value.toUpperCase();
+        updateFilenamePreview();
+      });
+      dom.inputStudentClass.addEventListener('change', updateFilenamePreview);
+
+      // Drag & Drop File Upload
+      dom.dropzone.addEventListener('click', () => dom.inputStlFile.click());
+      dom.inputStlFile.addEventListener('change', (e) => setSelectedFile(e.target.files?.[0] || null));
+      dom.dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dom.dropzone.classList.add('border-indigo-500', 'bg-indigo-50/70');
+      });
+      dom.dropzone.addEventListener('dragleave', () => {
+        dom.dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/70');
+      });
+      dom.dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dom.dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/70');
+        setSelectedFile(e.dataTransfer.files?.[0] || null);
+      });
+
+      dom.studentForm.addEventListener('submit', handleStudentSubmit);
+      dom.submitAnotherBtn.addEventListener('click', () => {
+        dom.studentSuccessCard.classList.add('hidden');
+        dom.studentFormCard.classList.remove('hidden');
+      });
+
+      // Drive Setup Panel
+      dom.btnToggleDriveSetup.addEventListener('click', () => {
+        state.showDriveSetup = !state.showDriveSetup;
+        renderDriveIndicators();
+      });
+      dom.btnCloseDriveSetup.addEventListener('click', () => {
+        state.showDriveSetup = false;
+        renderDriveIndicators();
+      });
+      dom.inputDriveSecret.addEventListener('input', () => {
+        dom.appsScriptTextarea.value = buildAppsScriptTemplate(dom.inputDriveSecret.value);
+        dom.driveTestResult.classList.add('hidden');
+      });
+      dom.btnGenerateKey.addEventListener('click', () => {
+        dom.inputDriveSecret.value = generateSecretKey();
+        dom.appsScriptTextarea.value = buildAppsScriptTemplate(dom.inputDriveSecret.value);
+        dom.driveTestResult.classList.add('hidden');
+      });
+      dom.appsScriptTextarea.addEventListener('click', () => dom.appsScriptTextarea.select());
+
+      // Iframe-Safe Copy Script Button (uses execCommand('copy') for Google Sites)
+      dom.btnCopyScript.addEventListener('click', () => {
+        let copied = false;
+        try {
+          dom.appsScriptTextarea.focus();
+          dom.appsScriptTextarea.select();
+          dom.appsScriptTextarea.setSelectionRange(0, dom.appsScriptTextarea.value.length);
+          copied = document.execCommand('copy');
+        } catch {
+          copied = false;
+        }
+        if (copied) {
+          dom.copyScriptLabel.textContent = 'Copied!';
+          showToast('Google Apps Script copied to clipboard!');
+          setTimeout(() => {
+            dom.copyScriptLabel.textContent = 'Copy Script';
+          }, 2500);
+        } else {
+          showToast('Script highlighted — press Ctrl+C (or Cmd+C) to copy.');
+        }
+      });
+
+      dom.btnTestDrive.addEventListener('click', async () => {
+        const url = dom.inputDriveUrl.value.trim();
+        if (!url) return showToast('Paste your Web App URL first to test it.', 'error');
+        dom.btnTestDrive.disabled = true;
+        dom.btnTestDrive.textContent = 'Testing...';
+        dom.driveTestResult.classList.add('hidden');
+        try {
+          const res = await uploadToGoogleDriveWebApp(url, {
+            action: 'ping',
+            secretKey: dom.inputDriveSecret.value.trim()
+          });
+          dom.driveTestResult.className = 'p-3 rounded-xl text-xs font-medium border bg-emerald-50 border-emerald-200 text-emerald-800';
+          dom.driveTestResult.textContent = `Connected & verified! Ready to save .stl files into "${res.folderName}".`;
+          dom.driveTestResult.classList.remove('hidden');
+        } catch (err) {
+          dom.driveTestResult.className = 'p-3 rounded-xl text-xs font-medium border bg-red-50 border-red-200 text-red-800';
+          dom.driveTestResult.textContent = `Connection failed: ${err.message}. Verify your Secret Key and that access is set to "Anyone".`;
+          dom.driveTestResult.classList.remove('hidden');
+        } finally {
+          dom.btnTestDrive.disabled = false;
+          dom.btnTestDrive.textContent = 'Test Connection';
+        }
+      });
+
+      dom.btnSaveDrive.addEventListener('click', () => {
+        const url = dom.inputDriveUrl.value.trim();
+        const secret = dom.inputDriveSecret.value.trim();
+        if (url && !url.startsWith('https://script.google.com/macros/s/')) {
+          return showToast(
+            'Please paste a valid Google Apps Script Web App URL (starts with https://script.google.com/macros/s/).',
+            'error'
+          );
+        }
+        if (url && !secret) {
+          return showToast('Please enter or generate a Secret Upload Key before saving.', 'error');
+        }
+        state.driveWebAppUrl = url;
+        state.driveSecretKey = secret;
+        showToast(
+          url ? 'Google Drive Auto-Sync URL & Secret Key saved for this session!' : 'Google Drive Auto-Sync disconnected.'
+        );
+        renderAll();
+      });
+
+      // Filters, Folder Cards & Sorting
+      dom.selectJumpClass.addEventListener('change', (e) => {
+        state.selectedFolder = e.target.value;
+        renderTeacherDrive();
+      });
+      dom.classFoldersGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.folder-card-btn');
+        if (!btn) return;
+        state.selectedFolder = btn.dataset.folder;
+        renderTeacherDrive();
+      });
+      dom.filterSearch.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderTeacherDrive();
+      });
+      dom.filterYear.addEventListener('change', (e) => {
+        state.yearFilter = e.target.value;
+        renderTeacherDrive();
+      });
+      dom.filterStatus.addEventListener('change', (e) => {
+        state.statusFilter = e.target.value;
+        renderTeacherDrive();
+      });
+      dom.filterSort.addEventListener('change', (e) => {
+        state.sortBy = e.target.value;
+        renderTeacherDrive();
+      });
+      dom.btnResetFilters.addEventListener('click', () => {
+        state.selectedFolder = 'ALL';
+        state.yearFilter = 'All Years';
+        state.statusFilter = 'All Statuses';
+        state.searchQuery = '';
+        state.sortBy = 'newest';
+        dom.filterSearch.value = '';
+        dom.filterYear.value = 'All Years';
+        dom.filterStatus.value = 'All Statuses';
+        dom.filterSort.value = 'newest';
+        renderTeacherDrive();
+      });
+      dom.checkboxZipFolders.addEventListener('change', (e) => {
+        state.organizeByClassFolders = e.target.checked;
+      });
+
+      // Master Checkbox
+      dom.masterCheckbox.addEventListener('change', () => {
+        const visibleIds = getFilteredSubmissions().map((s) => s.id);
+        const allSelected = visibleIds.length > 0 && visibleIds.every((id) => state.selectedIds.has(id));
+        if (allSelected) {
+          visibleIds.forEach((id) => state.selectedIds.delete(id));
+        } else {
+          visibleIds.forEach((id) => state.selectedIds.add(id));
+        }
+        renderTeacherDrive();
+      });
+
+      // All-Visible Quick Actions Delegation
+      dom.allVisibleActions.addEventListener('change', (e) => {
+        if (e.target.id === 'select-all-visible-status' && e.target.value) {
+          const ids = getFilteredSubmissions().map((s) => s.id);
+          updateStatusForIds(ids, e.target.value);
+        }
+      });
+      dom.allVisibleActions.addEventListener('click', (e) => {
+        const filtered = getFilteredSubmissions();
+        if (e.target.closest('#btn-download-all-zip')) {
+          downloadBatchZip(filtered);
+        } else if (e.target.closest('#btn-sync-all-visible')) {
+          syncSubmissionsToDrive(filtered.filter((s) => s.driveSyncStatus !== 'synced'));
+        } else if (e.target.closest('#btn-delete-all-visible')) {
+          state.confirmBulkDeleteTarget = 'visible';
+          renderTeacherDrive();
+        } else if (e.target.closest('#btn-confirm-delete-visible')) {
+          deleteIds(filtered.map((s) => s.id));
+        } else if (e.target.closest('#btn-cancel-bulk-delete')) {
+          state.confirmBulkDeleteTarget = null;
+          renderTeacherDrive();
+        }
+      });
+
+      // Sticky Bulk Selection Bar Delegation
+      dom.bulkSelectionBar.addEventListener('click', (e) => {
+        const selected = state.submissions.filter((s) => state.selectedIds.has(s.id));
+        const statusBtn = e.target.closest('.bulk-status-btn');
+        if (statusBtn) {
+          updateStatusForIds(selected.map((s) => s.id), statusBtn.dataset.bulkStatus);
+        } else if (e.target.closest('#btn-download-selected-zip')) {
+          downloadBatchZip(selected);
+        } else if (e.target.closest('#btn-sync-selected')) {
+          syncSubmissionsToDrive(selected.filter((s) => s.driveSyncStatus !== 'synced'));
+        } else if (e.target.closest('#btn-delete-selected')) {
+          state.confirmBulkDeleteTarget = 'selected';
+          renderTeacherDrive();
+        } else if (e.target.closest('#btn-confirm-delete-selected')) {
+          deleteIds(selected.map((s) => s.id));
+        } else if (e.target.closest('#btn-cancel-selected-delete')) {
+          state.confirmBulkDeleteTarget = null;
+          renderTeacherDrive();
+        } else if (e.target.closest('#btn-clear-selection')) {
+          state.selectedIds.clear();
+          state.confirmBulkDeleteTarget = null;
+          renderTeacherDrive();
+        }
+      });
+
+      // Table Row Actions Delegation
+      dom.submissionsTbody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('row-checkbox')) {
+          const id = e.target.dataset.rowSelect;
+          if (e.target.checked) state.selectedIds.add(id);
+          else state.selectedIds.delete(id);
+          renderTeacherDrive();
+        } else if (e.target.classList.contains('row-status-select')) {
+          const id = e.target.dataset.rowStatus;
+          updateStatusForIds([id], e.target.value);
+        }
+      });
+
+      dom.submissionsTbody.addEventListener('click', (e) => {
+        const dlBtn = e.target.closest('.row-download-btn');
+        if (dlBtn) {
+          const sub = state.submissions.find((s) => s.id === dlBtn.dataset.rowDownload);
+          return downloadSingleSubmission(sub);
+        }
+        const syncBtn = e.target.closest('.row-sync-btn');
+        if (syncBtn) {
+          const sub = state.submissions.find((s) => s.id === syncBtn.dataset.rowSync);
+          if (sub) syncSubmissionsToDrive([sub]);
+          return;
+        }
+        const delBtn = e.target.closest('.row-delete-btn');
+        if (delBtn) {
+          state.confirmDeleteId = delBtn.dataset.rowDelete;
+          return renderTeacherDrive();
+        }
+        const confirmBtn = e.target.closest('.row-delete-confirm-btn');
+        if (confirmBtn) {
+          return deleteIds([confirmBtn.dataset.rowDeleteConfirm]);
+        }
+        if (e.target.closest('.row-delete-cancel-btn')) {
+          state.confirmDeleteId = null;
+          renderTeacherDrive();
+        }
+      });
+    }
+
+    // Boot application
+    populateStudentClassDropdown();
+    dom.inputDriveUrl.value = state.driveWebAppUrl;
+    dom.inputDriveSecret.value = state.driveSecretKey;
+    bindEvents();
+    renderAll();
+  </script>
+</body>
+</html>
